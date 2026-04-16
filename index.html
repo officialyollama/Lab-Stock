@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabStock - Chemical Stock Management</title>
+    <meta name="description" content="Laboratory reagent and chemical stock management system.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="loading">
+    <!-- Custom cursor -->
+    <div id="cursor"></div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="login-box">
+            <div style="font-size:3rem; margin-bottom:15px;">🧪</div>
+            <h2>LabStock System</h2>
+            <p>Laboratory Reagent & Chemical Stock Management<br/>PCCOE — DBMS Project</p>
+            
+            <div class="role-select-grid">
+                <div class="role-card selected" id="rc-staff" onclick="app.selectRole('Lab Staff', this)">
+                    <div class="rc-icon">👩‍🔬</div>
+                    <div class="rc-title">Lab Staff</div>
+                    <div class="rc-desc">Manage stock & records</div>
+                </div>
+                <div class="role-card" id="rc-supplier" onclick="app.selectRole('Supplier', this)">
+                    <div class="rc-icon">🏭</div>
+                    <div class="rc-title">Supplier</div>
+                    <div class="rc-desc">View & update supplies</div>
+                </div>
+            </div>
+
+            <input class="login-input" type="text" id="login-name" placeholder="Enter your name" />
+            <input class="login-input" type="password" id="login-pass" placeholder="Password (any)" />
+            <button class="btn-login" onclick="app.doLogin()">Login →</button>
+            <p style="font-size:0.75rem; color:#aaa; margin-top:20px;">Demo: Select role & enter any credentials</p>
+        </div>
+    </div>
+
+    <!-- Top Navigation -->
+    <nav>
+        <div class="nav-logo">🧪 <span>LabStock</span> System</div>
+        <div class="nav-links-inline">
+            <button class="theme-toggle nav-btn nav-btn-ghost" id="theme-toggle" aria-label="Toggle Theme" style="display:none;"></button>
+            <div id="nav-user-info" style="display:flex; align-items:center; gap:15px;">
+                <span id="nav-role-display" style="font-size:0.85rem; color:#aaa;"></span>
+                <button class="nav-btn nav-btn-ghost" onclick="app.logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div id="role-badge-container"></div>
+            
+            <div class="sidebar-section">Navigation</div>
+            <div class="sidebar-link active" data-target="dashboard-page">
+                <span class="icon">📊</span> Dashboard
+            </div>
+            <div class="sidebar-link" data-target="chemicals-page">
+                <span class="icon">⚗️</span> Chemicals
+            </div>
+            <div class="sidebar-link" data-target="batches-page">
+                <span class="icon">📦</span> Batches
+            </div>
+            <div class="sidebar-link" data-target="stock-page">
+                <span class="icon">🗃️</span> Stock & TX
+            </div>
+            
+            <div class="sidebar-section">Management</div>
+            <div class="sidebar-link" data-target="suppliers-page">
+                <span class="icon">🏭</span> Suppliers
+            </div>
+            <div class="sidebar-link" data-target="staff-page">
+                <span class="icon">👩‍🔬</span> Lab Staff
+            </div>
+
+            <div class="sidebar-section">Account</div>
+            <div class="sidebar-link" data-target="profile-page">
+                <span class="icon">👤</span> My Profile
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <div class="pages-container">
+                
+                <!-- Dashboard Page -->
+                <section id="dashboard-page" class="page active">
+                    <div class="hero">
+                        <h1 id="welcome-msg">Welcome to <span>LabStock</span></h1>
+                        <p>Laboratory Chemical Stock Management System — Inventory Overview</p>
+                        <div class="hero-stats">
+                            <div class="hero-stat-card">
+                                <div class="num" id="dash-total-chem">0</div>
+                                <div class="lbl">⚗️ Chemicals</div>
+                            </div>
+                            <div class="hero-stat-card" style="border-top-color: var(--pink-dark);">
+                                <div class="num" id="dash-low-stock">0</div>
+                                <div class="lbl">⚠️ Low Stock</div>
+                            </div>
+                            <div class="hero-stat-card" style="border-top-color: var(--black);">
+                                <div class="num" id="dash-expiring">0</div>
+                                <div class="lbl">📅 Expiring Soon</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:24px; margin-top:30px;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">🔄 Recent Transactions</div>
+                                <button class="btn btn-sm btn-green" onclick="app.navigateTo('stock-page')">View All</button>
+                            </div>
+                            <div class="table-wrapper">
+                                <table id="dashboard-tx-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Chemical</th>
+                                            <th>Type</th>
+                                            <th>Qty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- JS Render -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-title">⚠️ Hazard Level Overview</div>
+                            <div id="hazard-chart" class="chart-bar-wrap">
+                                <!-- JS Render -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Chemicals Page -->
+                <section id="chemicals-page" class="page">
+                    <div class="page-title"><span class="icon">⚗️</span> Chemicals & Reagents</div>
+                    <div class="page-subtitle">Manage laboratory chemical inventory master records</div>
+                    
+                    <div id="chemical-alerts-container" class="alerts-container"></div>
+                    
+                    <div class="card">
+                        <div class="search-bar">
+                            <input type="text" id="chemical-search" class="search-input" placeholder="🔍 Search chemicals by name or type..." oninput="app.loadChemicals(this.value)">
+                            <button class="btn btn-green" onclick="app.openModal('chemical-modal')">
+                                <i class="fa-solid fa-plus"></i> Add New Chemical
+                            </button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="chemicals-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Hazard</th>
+                                        <th>Storage</th>
+                                        <th>Supplier</th>
+                                        <th style="text-align:right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Batches Page -->
+                <section id="batches-page" class="page">
+                    <div class="page-title"><span class="icon">📦</span> Batch Shipments</div>
+                    <div class="page-subtitle">Track incoming shipments and manufacturer expiry dates</div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Receive New Shipment</div>
+                            <button class="btn btn-green" onclick="app.openModal('batch-modal')">
+                                <i class="fa-solid fa-truck-ramp-box"></i> Record Batch
+                            </button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="batches-table">
+                                <thead>
+                                    <tr>
+                                        <th>Batch #</th>
+                                        <th>Chemical</th>
+                                        <th>Received</th>
+                                        <th>Expiry</th>
+                                        <th>Qty</th>
+                                        <th>Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Stock & Transactions Page -->
+                <section id="stock-page" class="page">
+                    <div class="page-title"><span class="icon">🗃️</span> Stock & Transactions</div>
+                    <div class="page-subtitle">Monitor available quantities and log usage activity</div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+                        <div class="card">
+                            <div class="card-title">📥 Current Stock Levels</div>
+                            <div class="table-wrapper">
+                                <table id="stock-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Chemical</th>
+                                            <th>Available</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">🔄 Activity History</div>
+                                <button class="btn btn-sm btn-pink" onclick="app.openModal('transaction-modal')">Log Transaction</button>
+                            </div>
+                            <div class="table-wrapper">
+                                <table id="all-tx-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Chemical</th>
+                                            <th>Type</th>
+                                            <th>Qty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Suppliers Page -->
+                <section id="suppliers-page" class="page">
+                    <div class="page-title"><span class="icon">🏭</span> Vendors & Suppliers</div>
+                    <div class="page-subtitle">Manage contact information for chemical providers</div>
+                    <div class="card">
+                        <div class="search-bar">
+                            <div style="flex:1"></div>
+                            <button class="btn btn-green" onclick="app.openModal('supplier-modal')">
+                                <i class="fa-solid fa-plus"></i> Add Vendor
+                            </button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="suppliers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Company</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Address</th>
+                                        <th style="text-align:right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Staff Page -->
+                <section id="staff-page" class="page">
+                    <div class="page-title"><span class="icon">👩‍🔬</span> Laboratory Staff</div>
+                    <div class="page-subtitle">Manage system users and access roles</div>
+                    <div class="card">
+                        <div class="search-bar">
+                            <div style="flex:1"></div>
+                            <button class="btn btn-green" onclick="app.openModal('staff-modal')">
+                                <i class="fa-solid fa-user-plus"></i> Add Staff
+                            </button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="staff-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Role</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th style="text-align:right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Profile Page -->
+                <section id="profile-page" class="page">
+                    <div class="page-title"><span class="icon">👤</span> My Profile</div>
+                    <div class="page-subtitle">Personal information and account settings</div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:24px;">
+                        <div class="card" style="text-align:center;">
+                            <img src="" id="profile-page-avatar" class="profile-avatar-lg" alt="Profile">
+                            <h2 id="profile-page-name">User Name</h2>
+                            <div class="badge badge-info" id="profile-page-role" style="margin-top:10px;">Role</div>
+                            <div style="margin-top:25px; text-align:left; border-top:1px solid var(--beige-mid); padding-top:15px;">
+                                <div style="font-size:0.75rem; color:var(--gray); text-transform:uppercase;">Email</div>
+                                <div id="profile-page-email" style="font-weight:600; margin-bottom:12px;">email@example.com</div>
+                                <div style="font-size:0.75rem; color:var(--gray); text-transform:uppercase;">Contact</div>
+                                <div id="profile-page-contact" style="font-weight:600;">Not provided</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">Edit Personal Details</div>
+                            <form id="profile-settings-form" style="margin-top:20px;">
+                                <input type="hidden" id="prof_id" name="Staff_ID">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="prof_name" name="Staff_Name" required>
+                                </div>
+                                <div class="grid-2-col">
+                                    <div class="form-group">
+                                        <label>Email Address</label>
+                                        <input type="email" id="prof_email" name="Email" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Contact Number</label>
+                                        <input type="text" id="prof_contact" name="Contact_Number">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Profile Picture URL</label>
+                                    <input type="url" id="prof_pic" name="Profile_Pic" placeholder="https://...">
+                                </div>
+                                <div class="form-group">
+                                    <label>System Role</label>
+                                    <input type="text" id="prof_role" readonly style="background:var(--beige-dark)">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-green">Update Profile</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Chemical Modal -->
+    <div class="modal" id="chemical-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="chemical-modal-title">Add New Chemical</h2>
+                <button class="close-btn" onclick="app.closeModal('chemical-modal')">✕</button>
+            </div>
+            <form id="chemical-form">
+                <input type="hidden" id="chem_id" name="Chemical_ID">
+                <div class="form-group">
+                    <label>Chemical Name</label>
+                    <input type="text" name="Chemical_Name" id="chem_name" required>
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label>Category/Type</label>
+                        <input type="text" name="Chemical_Type" id="chem_type" placeholder="e.g. Acid, Base">
+                    </div>
+                    <div class="form-group">
+                        <label>Unit</label>
+                        <select name="Unit" id="chem_unit">
+                            <option value="Liter">Liter</option>
+                            <option value="ml">ml</option>
+                            <option value="Gram">Gram</option>
+                            <option value="mg">mg</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label>Hazard Level</label>
+                        <select name="Hazard_Level" id="chem_hazard">
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Storage Condition</label>
+                        <input type="text" name="Storage_Condition" id="chem_storage" placeholder="e.g. Cool, Dry">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Preferred Supplier</label>
+                    <select name="Supplier_ID" id="chem_supplier" class="supplier-dropdown">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-pink" onclick="app.closeModal('chemical-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-green">Save Chemical</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Batch Modal -->
+    <div class="modal" id="batch-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Record New Batch</h2>
+                <button class="close-btn" onclick="app.closeModal('batch-modal')">✕</button>
+            </div>
+            <form id="batch-form">
+                <div class="form-group">
+                    <label>Chemical</label>
+                    <select name="Chemical_ID" class="chemical-dropdown" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Batch Number</label>
+                    <input type="text" name="Batch_Number" required placeholder="e.g. B2024-01">
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label>Mfg Date</label>
+                        <input type="date" name="Manufacture_Date">
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date</label>
+                        <input type="date" name="Expiry_Date" required>
+                    </div>
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label>Quantity Received</label>
+                        <input type="number" step="0.01" name="Quantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Unit Price ($)</label>
+                        <input type="number" step="0.01" name="Unit_Price">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-pink" onclick="app.closeModal('batch-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-green">Confirm Receipt</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div class="modal" id="transaction-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Log Usage / Transaction</h2>
+                <button class="close-btn" onclick="app.closeModal('transaction-modal')">✕</button>
+            </div>
+            <form id="transaction-form">
+                <div class="form-group">
+                    <label>Reagent</label>
+                    <select name="Chemical_ID" class="chemical-dropdown" required></select>
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label>Action Type</label>
+                        <select name="Transaction_Type" required>
+                            <option value="Usage">Usage (Consumption)</option>
+                            <option value="Purchase">Purchase (Stock Added)</option>
+                            <option value="Disposal">Disposal</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" step="0.01" name="Quantity" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-pink" onclick="app.closeModal('transaction-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-green">Submit Log</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Supplier Modal -->
+    <div class="modal" id="supplier-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="supplier-modal-title">Add New Supplier</h2>
+                <button class="close-btn" onclick="app.closeModal('supplier-modal')">✕</button>
+            </div>
+            <form id="supplier-form">
+                <input type="hidden" name="Supplier_ID" id="sup_id">
+                <div class="form-group">
+                    <label>Company Name</label>
+                    <input type="text" name="Supplier_Name" id="sup_name" required>
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="Email" id="sup_email">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="text" name="Contact_Number" id="sup_contact">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" name="Address" id="sup_address">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-pink" onclick="app.closeModal('supplier-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-green">Save Vendor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Staff Modal -->
+    <div class="modal" id="staff-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="staff-modal-title">Add Staff Member</h2>
+                <button class="close-btn" onclick="app.closeModal('staff-modal')">✕</button>
+            </div>
+            <form id="staff-form">
+                <input type="hidden" name="Staff_ID" id="staff_id">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="Staff_Name" id="staff_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select name="Role" id="staff_role">
+                        <option value="Lab Technician">Lab Technician</option>
+                        <option value="Inventory Manager">Inventory Manager</option>
+                        <option value="Researcher">Researcher</option>
+                        <option value="Lab Assistant">Lab Assistant</option>
+                    </select>
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="Email" id="staff_email">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="text" name="Contact_Number" id="staff_contact">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-pink" onclick="app.closeModal('staff-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-green">Save Staff</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">
+        <span id="toast-icon">✨</span>
+        <div id="toast-message" class="toast-message">Action processed successfully</div>
+    </div>
+
+    <!-- App Logic -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Simple cursor logic
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', e => {
+            cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+        });
+    </script>
+</body>
+</html>
