@@ -5,8 +5,8 @@ const path = require('path');
 const db = require('./database'); // This initializes the SQLite DB
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
+const port = process.env.PORT || 3000;
+app.listen(port);
 app.use(cors());
 app.use(express.json());
 
