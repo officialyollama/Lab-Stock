@@ -5,10 +5,11 @@ const path = require('path');
 const db = require('./database'); // This initializes the SQLite DB
 
 const app = express();
-const port = process.env.PORT || 3000;
-app.listen(port);
+
 app.use(cors());
 app.use(express.json());
+
+
 
 // Serve static frontend files (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, '.')));
@@ -316,7 +317,10 @@ app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Start Server
+// Define PORT
+const PORT = process.env.PORT || 3000;
+
+// Start Server (KEEP THIS AT THE VERY END)
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
